@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<script src="../assets/js/bootstrap.js"></script>
+
+<nav th:fragment="navbar" class="navbar navbar-dark bg-dark">
+
+  <!-- Navbar content -->
+  <a th:href="@{/board}">
+  <img class="mb-4" th:src="@{/assets/brand/parrot.png}" width="60" height="60" style="margin: 20px 0px 0px 50px;">
+  </a>
+
+  <div class="container d-flex justify-content-end">
+    <a class="btn btn-outline-light" th:if="${session.LoginId} == admin" th:href="@{/admin}" th:text="관리자" style="margin-right: 3px;"></a>
+    <a class="btn btn-outline-light" th:if="${login} == 0" th:href="@{/member/login}" th:text="로그인"></a>
+    <a class="btn btn-outline-light" style="margin-right: 3px;" th:if="${login} == 1" th:href="@{/member/mypage}" th:text="마이페이지"></a>
+    <a class="btn btn-outline-light" th:if="${login} == 1" th:href="@{/member/logout}" th:text="로그아웃"></a>
+  </div>
+</nav>
+
+</html>
+
+
+
+

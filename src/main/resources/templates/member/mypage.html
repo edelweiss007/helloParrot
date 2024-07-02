@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>회원정보 수정</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.css">
+    <script src="../assets/js/bootstrap.js"></script>
+</head>
+<body>
+
+<div th:replace="~{/fragments/navbar :: navbar}"></div>
+
+<div class="container" style="margin-top: 100px;">
+    <h2>회원정보</h2>
+    <form action="/member/setNewPassword" method="get">
+        <div class="mb-3 row">
+            <label for="id" class="col-sm-2 col-form-label">ID</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" id="id" th:value="${id}">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="email" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" id="email" th:value="${email}">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="password" class="col-sm-2 col-form-label">Password</label>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary mb-3" id="password">비밀번호 변경</button>
+            </div>
+        </div>
+    </form>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary" onclick="delConfirm()">회원탈퇴</button>
+        </div>
+</div>
+
+<div th:replace="~{/fragments/footer:: footer}"></div>
+</body>
+
+<script>
+
+    async function delConfirm() {
+
+        if(confirm("정말 탈퇴하시겠습니까?")) {
+
+            const result = await fetch('http://localhost:8080/member/delete');
+
+            if(result.status === 200) {
+                alert("회원탈퇴가 완료되었습니다!");
+                location.replace('/board');
+            } else {
+                alert("회원탈퇴에 문제가 발생하였습니다 :(");
+                location.replace('/member/errorPage');
+            }
+        }
+
+
+    }
+
+</script>
+
+</html>

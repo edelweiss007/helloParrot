@@ -1,0 +1,40 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    div {
+      text-align: center;
+    }
+  </style>
+  <link rel="stylesheet" href="../assets/css/bootstrap.css">
+  <script src="../assets/js/bootstrap.js"></script>
+</head>
+
+
+<body class="bg-body-tertiary">
+<div th:replace="~{/fragments/navbar :: navbar}"></div>
+
+
+<div class="container" style="margin-top: 200px; width: 400px;">
+  <form action="/member/emailAuth" method="POST">
+    <img class="mb-4" src="../assets/brand/santa.avif" alt="" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">인증번호가 전송되었습니다.</h1>
+
+    <div class="form-floating">
+      <input type="authNumber" name="authNumber" class="form-control" id="floatingInput"
+             placeholder="">
+      <label for="floatingInput">인증번호를 입력해 주세요.</label>
+    </div>
+    <p th:if="${authNumStatus == 2}" style="color:red">인증번호가 틀렸습니다.</p>
+    <br>
+    <input type="hidden" id="email" name="email" th:value="${email}">
+    <input type="hidden" id="startTime" name="startTime" th:value="${startTime}">
+    <button class="w-100 btn btn-lg btn-primary" type="submit">인증하기</button>
+  </form>
+</div>
+
+<div th:replace="~{/fragments/footer :: footer}"></div>
+</body>
+</html>

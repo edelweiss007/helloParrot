@@ -1,0 +1,68 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>게시물 수정</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.css">
+    <script src="../assets/js/bootstrap.js"></script>
+</head>
+
+<body>
+
+<div th:replace="~{/fragments/navbar :: navbar}"></div>
+
+<div class="container" style="margin-top: 100px; padding-bottom: 200px;">
+    <form th:action="@{/board/{id}(id=${boardRequestDto.id})}"
+          method="post" enctype="multipart/form-data" th:object="${boardRequestDto}">
+        <div class="mb-3">
+            <label for="title" class="form-label">제목</label>
+            <input type="text" class="form-control" id="title" th:field="*{title}" maxlength="45">
+            <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></p>
+        </div>
+        <div class="mb-3" style="margin-top: 30px;">
+            <label for="content" class="form-label">내용</label>
+            <textarea class="form-control" rows="20" id="content" th:field="*{content}"
+                      maxlength="300"></textarea>
+            <p th:if="${#fields.hasErrors('content')}" th:errors="*{content}" style="color: red"></p>
+        </div>
+
+        <div th:if="${boardRequestDto.filepath != null}" class="position-relative image-container" style="margin: 30px 0px;">
+            <img th:src="@{${boardRequestDto.filepath}}"/>
+            <button type="button" class="btn-close position-absolute top-0 start-0" aria-label="Close"></button>
+        </div>
+
+        <!-- 파일첨부 -->
+        <div class="mb-3">
+            <label for="file" class="form-label">파일 첨부</label>
+            <input class="form-control" type="file" id="file" name="file">
+        </div>
+
+        <input type="hidden" id="isFileDeleted" name="isFileDeleted" value="no">
+
+        <div class="d-flex justify-content-end">
+            <!-- Button -->
+            <a class="btn btn-primary" th:href="@{/board}" style="width: 100px; margin-right: 3px;">목록</a>
+            <button class="btn btn-primary" type="submit" style="width: 100px;">수정</button>
+        </div>
+
+
+    </form>
+</div>
+
+<div th:replace="~{/fragments/footer :: footer}"></div>
+</body>
+
+<script th:inline="javascript">
+
+    //닫기 버튼을 클릭하면 이미지가 사라지게
+    const closeButton = document.querySelector(".btn-close");
+    const deletedFile = document.getElementById("isFileDeleted")
+
+    closeButton.addEventListener("click", function(){
+        const imageContainer = document.querySelector(".image-container");
+        imageContainer.style.display = "none";
+
+        deletedFile.value = "deleted";
+    });
+</script>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세 페이지</title>
+    <style>
+        .oneLine h6 {
+            display: inline;
+        }
+        .form-control:focus {
+            border-color: #cbccce !important;
+            box-shadow: none !important;
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/css/bootstrap.css">
+    <script src="../assets/js/bootstrap.js"></script>
+</head>
+<body>
+
+<div th:replace="~{/fragments/navbar :: navbar}"></div>
+
+<div class="container" style="margin-top: 50px; padding-bottom: 200px;">
+
+    <h1 th:text="${boardView.title}"></h1>
+    <div class="oneLine">
+        <h6 th:text="${boardView.writer}">작성자</h6>
+        <h6 th:if="(${#calendars.format(#calendars.createNow(), 'yyyy-MM-dd')} != ${#temporals.format(boardView.created, 'yyyy-MM-dd')}) and (${#dates.year(#dates.createToday())} == ${boardView.created.getYear()})"
+            th:text="${#temporals.format(boardView.created, 'MM.dd')}"></h6>
+        <h6 th:if="${#calendars.format(#calendars.createNow(), 'yyyy-MM-dd')} == ${#temporals.format(boardView.created, 'yyyy-MM-dd')}"
+            th:text="${#temporals.format(boardView.created, 'HH:mm')}"></h6>
+        <h6 th:if="${#dates.year(#dates.createToday())} != ${boardView.created.getYear()}"
+            th:text="${#temporals.format(boardView.created, 'yyyy.MM.dd')}"></h6>
+    </div>
+
+    <hr class="border border-danger border-2 opacity-50" style="margin-bottom: 30px;">
+
+    <th:block th:if="${boardView.filepath} != null">
+        <img class="rounded" th:src="${boardView.filepath}" style="margin-bottom: 30px;"/>
+    </th:block>
+    <p th:text="${boardView.content}">내용이 들어갈 부분입니다.</p>
+    <a class="btn text-white" style="background-color: #cbccce" th:href="${boardView.filepath}" role="button">다운로드</a> <!-- 변수는 $태그로 감싸야함 -->
+    <a class="btn text-white" style="background-color: #cbccce" th:if="${boardView.writer} == ${session.LoginId} or ${session.LoginId} == admin" th:href="@{/board/delete/{id}(id=${boardView.id})}">삭제</a>
+    <a class="btn text-white" style="background-color: #cbccce" th:if="${boardView.writer} == ${session.LoginId} or ${session.LoginId} == admin" th:href="@{/board/{id}/updateForm(id=${boardView.id})}">수정</a>
+    <a class="btn text-white" style="background-color: #cbccce" th:href="@{/board}">목록</a>
+
+    <hr class="border border-danger border-2 opacity-50" style="margin-bottom: 30px;">
+
+    <!-- 댓글 출력 부분 -->
+
+    <div class="container" th:each="oneOfList: ${commentResponseDto}">
+        <div class="row align-items-center" th:id="'comments-' + ${oneOfList.commentId}">
+            <div class="col" th:text="${oneOfList.commentWriter}">
+                One of four columns
+            </div>
+            <div class="col-6" th:text="${oneOfList.commentContent}">
+                One of four columns
+            </div>
+            <div class="col" th:text="${#temporals.format(oneOfList.commentUpdated, 'yyyy.MM.dd HH:mm')}">
+                One of four columns
+            </div>
+            <div class="col">
+                <!-- Button trigger modal -->
+                <div class="btn float-end">
+                    <button type="button"
+                            class="btn text-white"
+                            style="background-color: #cbccce"
+                            data-bs-toggle="modal"
+                            data-bs-target="#comment-edit-modal"
+                            th:data-commentId="${oneOfList.commentId}"
+                            th:data-commentContent="${oneOfList.commentContent}"
+                            th:data-boardId="${oneOfList.boardId}"
+                            th:data-commentWriter="${oneOfList.commentWriter}"
+                            th:if="${oneOfList.commentWriter} == ${session.LoginId}"
+                    >수정
+                    </button>
+                    <!-- 댓글 삭제 버튼 -->
+                    <button type="button"
+                            class="comment-delete-btn btn text-white"
+                            style="background-color: #cbccce"
+                            th:data-commentId="${oneOfList.commentId}"
+                            th:data-commentWriter="${oneOfList.commentWriter}"
+                            th:if="${oneOfList.commentWriter} == ${session.LoginId} or ${session.LoginId} == admin"
+                    >삭제
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr th:if="${!oneOfListStat.last}">
+    </div>
+
+    <hr class="border border-danger border-2 opacity-50" style="margin: 30px 0px;">
+    
+    <!-- 댓글 작성 부분 -->
+    <div class="form-floating">
+        <textarea class="form-control" placeholder="댓글을 작성해 주세요." id="commentContent" style="height: 100px; margin-bottom: 5px;"></textarea>
+        <button class="btn text-white" style="background-color: #cbccce; margin-bottom: 100px;"
+                id="comment-write-btn" onclick="commentWrite()">작성</button>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal" id="comment-edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">댓글 수정</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form>
+                    <div class="modal-body">
+                        <!-- 댓글 수정 폼 -->
+                        <div class="mb-3">
+                            <label class="form-label">댓글 내용</label>
+                            <textarea class="form-control" id="edit-comment-body" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <!-- 히든 인풋 -->
+                    <input type="hidden" id="edit-comment-id">
+                    <input type="hidden" id="edit-comment-board-id">
+                    <input type="hidden" id="edit-comment-writer">
+                    <!-- 전송 버튼 -->
+                    <button type="button"class="btn text-white" id="comment-update-btn"
+                            style="background-color: #cbccce; margin-left: 395px; margin-bottom: 15px; margin-top: -20px;">수정 완료
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{/fragments/footer :: footer}"></div>
+</body>
+
+<script th:inline="javascript">
+
+    // 댓글 쓰기
+    async function commentWrite() {
+
+        const boardId = [[${boardView.id}]]
+
+        //새 댓글 객체 생성
+        const commentRequestDto = {
+            boardId,
+            commentWriter: [[${session.LoginId}]],
+            commentContent: document.querySelector("#commentContent").value
+        };
+
+        const result = await fetch(`/board/${boardId}/comments`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(commentRequestDto)
+        });
+
+        const message = (result.ok) ? "댓글이 등록되었습니다! :)" : "댓글 등록에 실패했습니다. :("
+        alert(message);
+
+        window.location.reload();
+
+    }
+
+    // 모달 이벤트 처리
+    {
+        //모달 요소를 변수에 저장
+        const commentEditModal = document.querySelector("#comment-edit-modal");
+
+        //모달 이벤트 감지        이벤트타입(모달이 표시되기 직전 실행되는 이벤트) / 이벤트 처리 함수
+        commentEditModal.addEventListener("show.bs.modal", function (event) {
+            //트리거 버튼 선택
+            const triggerBtn = event.relatedTarget;
+            //데이터 가져오기
+            const commentId = triggerBtn.getAttribute("data-commentId");
+            const commentContent = triggerBtn.getAttribute("data-commentContent");
+            const boardId = triggerBtn.getAttribute("data-boardId");
+            const commentWriter = triggerBtn.getAttribute("data-commentWriter");
+            //수정 폼에 데이터 반영
+            document.querySelector("#edit-comment-body").value = commentContent;
+            document.querySelector("#edit-comment-id").value = commentId;
+            document.querySelector("#edit-comment-board-id").value = boardId;
+            document.querySelector("#edit-comment-writer").value = commentWriter;
+        });
+    }
+
+    //댓글 수정
+    {
+        //수정완료 버튼 선택
+        const commentUpdateBtn = document.querySelector("#comment-update-btn");
+
+        //클릭 이벤트 처리
+        commentUpdateBtn.addEventListener("click", async function () {
+            //객체 변수 선언
+            const comment = {
+                commentId: document.querySelector("#edit-comment-id").value,
+                commentContent: document.querySelector("#edit-comment-body").value,
+                boardId: document.querySelector("#edit-comment-board-id").value,
+                commentWriter: document.querySelector("#edit-comment-writer").value
+            };
+            console.log(comment);
+
+            //수정 REST API 호출
+            const url = "/comments/" + comment.commentId;
+            const result = await fetch(url, {
+                method: "PATCH", //패치 요청
+                headers: {  //전송 데이터 타입 정보
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(comment)
+            });
+
+            const message = (result.ok) ? "댓글 수정이 완료되었습니다! :)" : "댓글 수정에 실패했습니다. :("
+            alert(message);
+
+            window.location.reload();
+        })
+    }
+
+    //댓글 삭제
+    {
+        //삭제 버튼 선택
+        const commentDeleteBtns = document.querySelectorAll(".comment-delete-btn");
+
+        commentDeleteBtns.forEach(btn => { //버튼 수만큼 반복
+            btn.addEventListener("click", async (event) => { //각 버튼의 이벤트 처리
+                //이벤트를 발생시킨 요소(삭제버튼)을 가져와 변수에 저장
+                const commentDeleteBtn = event.target;
+                //삭제할 댓글 id 가져오기
+                const commentId = commentDeleteBtn.getAttribute("data-commentId");
+                console.log(`삭제 버튼 클릭: ${commentId}번 댓글`);
+                //삭제 API 호출
+                const url = `/comments/${commentId}`
+                //객체 변수 선언
+                const comment = {
+                    //바디에 넣을 작성자(로그인한 사용자와 일치하는지 확인용)
+                    commentWriter: commentDeleteBtn.getAttribute("data-commentWriter")
+                }
+
+                const result = await fetch(url, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(comment)
+                });
+                //댓글 삭제 실패 처리
+                if (!result.ok) {
+                    alert("댓글 삭제에 실패하였습니다. :(");
+                    return;
+                }
+
+                if (result.ok) {
+                    //삭제 성공시 댓글을 화면에서 지우고 메시지 띄우기
+                    const target = document.querySelector(`#comments-${commentId}`);
+                    target.remove();
+                    const message = `댓글을 삭제했습니다. :)`
+                    alert(message);
+                    //새로고침
+                    window.location.reload();
+                }
+            });
+        });
+    }
+
+
+</script>
+
+<!--<script th:inline="javascript">-->
+<!--    function deletePost(id) {-->
+<!--        console.log("hi")-->
+<!--        fetch(`/board/delete/${id}`, { //javascript 에서는 String 안에 변수를 대입할 때 따옴표를 백틱으로 쓴다.-->
+<!--            method: "POST"-->
+<!--        })-->
+<!--            .then((response) => response.json())-->
+<!--            .then((result) => console.log(result));-->
+<!--    }-->
+<!--</script>-->
+</html>

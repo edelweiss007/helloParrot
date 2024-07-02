@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원관리</title>
+    <link rel="stylesheet" href="../assets/css/bootstrap.css">
+    <script src="../assets/js/bootstrap.js"></script>
+    <style>
+        .page-link {
+            color: #000;
+            background-color: #fff;
+            border: 1px solid #ccc;
+        }
+
+        .page-item.active .page-link {
+            z-index: 1;
+            color: #555;
+            font-weight: bold;
+            background-color: #f1f1f1;
+            border-color: #ccc;
+
+        }
+
+        .page-link:focus, .page-link:hover {
+            color: #000;
+            background-color: #fafafa;
+            border-color: #ccc;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{/fragments/navbar_admin :: navbar_admin}"></div>
+
+<div class="container" style="margin-top: 50px;">
+    <div class="jumbotron">
+        <h2>회원관리</h2>
+    </div>
+
+    <!-- 검색창 -->
+    <!-- name의 파라미터들이 /admin의 리턴값인 memberList.html으로 간다.  -->
+    <div style="float: right;">
+        <form class="d-flex" th:action="@{/admin}" method="get">
+            <select name="searchOption" class="form-select d-inline-flex focus-ring focus-ring-secondary py-1 px-2 text-decoration-none border rounded-2" aria-label="Default select example" style="width: 100px; height: 40px; margin-right: 3px;">
+                <option value="1">ID</option>
+                <option value="2">Email</option>
+            </select>
+            <input class="form-control me-2 d-inline-flex focus-ring focus-ring-secondary py-1 px-2 text-decoration-none border rounded-2" type="search" aria-label="Search" name="searchKeyword" style="width:200px; height: 40px;">
+            <button class="btn btn-secondary" type="submit" style="width: 70px;">검색</button>
+        </form>
+    </div>
+
+    <table class="table" style="margin-top: 60px; text-align: center;">
+        <tr>
+            <th>회원 ID</th>
+            <th>Email</th>
+            <th>등록 날짜</th>
+            <th>업데이트 날짜</th>
+            <th>회원 계정 삭제</th>
+        </tr>
+        <tr th:each="oneOfList: ${list}">
+            <td th:text="${oneOfList.loginId}"></td>
+            <td th:text="${oneOfList.email}"></td>
+            <td th:text="${#temporals.format(oneOfList.reg_day, 'yyyy.MM.dd')}"></td>
+            <td th:text="${#temporals.format(oneOfList.update_day, 'yyyy.MM.dd')}"></td>
+            <td>
+                <button class="btn text-white" style="background-color: #cbccce"
+                        th:onclick="'deleteMemberConfirm(\'' + ${oneOfList.memberId} + '\')'">회원 삭제
+                </button>
+            </td>
+        </tr>
+    </table>
+
+    <nav class="d-flex justify-content-center" style="margin-top: 100px;">
+        <!-- th:with 해당 태그를 scope로 갖는 변수를 선언하는 속성 -->
+        <ul class="pagination"
+            th:with="start=${T(java.lang.Math).floor(list.number/10)*10 + 1},
+                    last=(${start + 9 < list.totalPages ? start + 9 : list.totalPages})">
+            <li class="page-item">                                              <!-- 파라미터에서 가져온 값 -->
+                <a class="page-link" th:href="@{/admin(page=1, searchOption = ${param.searchOption}, searchKeyword = ${param.searchKeyword})}"
+                   aria-label="First">
+                    <span aria-hidden="true">First</span>     <!--  @PageableDefault(page = 0..을 1로 바꿔서 들어간다. -->
+                </a>
+            </li>
+            <!-- 첫번째 페이지일 때 왼쪽 화살표 비활성화 -->
+            <li class="page-item" th:class="${list.first} ? 'page-item disabled'">
+                <!-- 1번에 있을 때 왼쪽 화살표 버튼이 안눌리게       2 이상일 경우에 눌리게-->
+                <a class="page-link"
+                   th:href="${list.first} ? '#' :@{/admin(page=${list.number}, searchOption = ${param.searchOption}, searchKeyword = ${param.searchKeyword})}"
+                   aria-label="Previous">
+                    <span aria-hidden="true">&lt;</span>                                 <!--인덱스 가져옴 -->
+                </a>
+            </li>
+            <!-- p라는 변수                                           페이지에서 가져온 인덱스에 +1을 한 값 / 진하게-->
+            <li class="page-item" th:each="p: ${#numbers.sequence(start, last)}"
+                th:class="${p == list.number + 1} ? 'page-item active'">
+                <a class="page-link" th:text="${p}"
+                   th:href="@{/admin(page=${p}, searchOption = ${param.searchOption}, searchKeyword = ${param.searchKeyword})}"></a>
+            </li>                   <!-- p를 나열      -->
+            <!-- 마지막 페이지인 경우에 오른쪽 화살표 비활성화  -->
+            <li class="page-item" th:class="${list.last} ? 'page-item disabled'">
+                <!-- 마지막 페이지일 때 오른쪽 화살표 버튼이 안눌리게                    인덱스  -->
+                <a class="page-link"
+                   th:href="${list.last} ? '#' : @{/admin(page=${list.number + 2}, searchOption = ${param.searchOption}, searchKeyword = ${param.searchKeyword})}"
+                   aria-label="Next">
+                    <span aria-hidden="true">&gt;</span>
+                </a>
+            </li>
+
+            <li class="page-item">
+                <a class="page-link"
+                   th:href="@{/admin(page=${list.totalPages}, searchOption = ${param.searchOption}, searchKeyword = ${param.searchKeyword})}"
+                   aria-label="Last">
+                    <span aria-hidden="true">Last</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div th:replace="~{/fragments/footer_admin :: footer_admin}"></div>
+</body>
+
+<script>
+    //회원 계정 삭제
+    async function deleteMemberConfirm(memberId) {
+
+        if (confirm("정말 회원 계정을 삭제하시겠습니까?")) {
+
+            const result = await fetch(`http://localhost:8080/admin/deleteMember/${memberId}`);
+
+            if (result.status === 200) {
+                alert("회원탈퇴가 완료되었습니다!");
+                location.replace('/admin');
+            } else {
+                alert("회원탈퇴에 문제가 발생하였습니다 :(");
+                location.replace('/admin/errorPage');
+            }
+        }
+
+
+    }
+</script>
+</html>

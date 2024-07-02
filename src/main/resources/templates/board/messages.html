@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<script th:inline="javascript">
+
+  /*<![CDATA[*/
+
+  var write = [[${write}]];
+  var modify = [[${modify}]];
+
+  if (write != null) {
+      alert(write);
+  }
+
+  if(modify != null) {
+      alert(modify);
+  }
+
+  <!-- 페이지를 이동시켜주는 기능 -->
+  location.replace([[${url}]]);
+
+  /*]]>*/
+</script>
+
+<body>
+
+</body>
+</html>
